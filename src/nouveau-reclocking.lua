@@ -181,7 +181,7 @@ end
 
 local function print_usage()
     print[[
-nouveau-relocking - a small utility to relock your GPU with nouveau
+nouveau-reclocking - a small utility to relock your GPU with nouveau
 
 Options:
   -c --card      Set for a specific card only (numeric ID)
@@ -208,7 +208,7 @@ local function main()
     end
 
     if options.version then
-        print("nouveau-relocking v" .. version .. " written by Vasiliy Stelmachenok (ventureo@yandex.ru)")
+        print("nouveau-reclocking v" .. version .. " written by Vasiliy Stelmachenok (ventureo@yandex.ru)")
         os.exit(0)
     end
 

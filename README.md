@@ -1,8 +1,10 @@
 # nouveau-reсlocking
 
-## Description
+## Description 
 
-A small Lua utility to reclock your GPU when using Nouveau. This should make life easier for owners of older NVIDIA video cards limited to support the 390xx or 340xx driver branch, but it can also work for Maxwell/Kepler. 
+By default, your GPU runs at a low video core/memory frequency when using Nouveau, because Nouveau does not support automatic memory management due to restrictions imposed by NVIDIA. This is the main reason for the low performance of Nouveau, which is why you only get 10% of what you get with a proprietary driver. However, Nouveau also supports manual power management of your graphics card, this is called reclocking. Nouveau only supports reclocking of GM10x Maxwell, Kepler, Tesla G94-GT218 (and Fermi?) GPU families. If your video card belongs to one of these generations, with reclocking you can get already about ~80% of the performance (see links below for benchmarks) from using with a proprietary driver.  This allows Nouveau to be competitive for older video cards which are limited to support the closed NVIDIA 390xx or 340xx and lower driver. It still might not be impressive to want to use Nouveau, but in the section below you can read more reasons for this.
+
+This little utility for Lua should help simplify your reclocking process and make it easier. Note that if your GPU does not support reclocking, this utility is probably useless for you.
 
 It requires no external dependencies and should work on any distribution. Read the installation block below.
 

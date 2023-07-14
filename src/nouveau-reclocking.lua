@@ -198,6 +198,22 @@ WARNING: Reclocking is supported only on GM10x Maxwell, Kepler and Tesla G94-GT2
   os.exit(0)
 end
 
+local function get_opt_argument(options, option, default)
+    local index = options[option]
+    if index ~= nil then
+        local option_argument = arg[index+1]
+        if option_argument == nil or options[option_argument:gsub("-%-", "")] then
+            if not default then
+                die("Missing argument for option %s", option)
+            else
+                return default
+            end
+        else
+            return option_argument
+        end
+    end
+end
+
 local function main()
     local options = get_opts(arg)
 
@@ -220,27 +236,11 @@ local function main()
         die("This program is should be run as root")
     end
 
-    local card, level, save
-    if options.card then
-        card = arg[options.card+1] -- Gets option argument
-        if card == nil or options[card:gsub("-%-", "")] then
-            die("Missing card")
-        end
-    end
+    local card = get_opt_argument(options, "card", nil)
+    local level = get_opt_argument(options, "pstate", nil)
+    local save = get_opt_argument(options, "save", "/etc/modprobe.d/90-nouveau.conf")
 
-    if options.save then
-        save = arg[options.save+1] -- Gets option argument
-        if save == nil or options[save:gsub("-%-", "")] then
-            save = "/etc/modprobe.d/90-nouveau.conf"
-        end
-    end
-
-    if options.pstate then
-        level = arg[options.pstate+1] -- Gets option argument
-        if level == nil or options[level:gsub("-%-", "")] then
-            die("Missing pstate level")
-        end
-    elseif options.list then
+    if options.list then
         print_avaliable_pstates()
     elseif options.max then
         level = "max"
@@ -248,7 +248,7 @@ local function main()
         level = "min"
     end
 
-    if level == nil then
+    if not level then
         die("Please select the pstate level you want to set up with --max, --min or --pstate")
     end
 

@@ -77,12 +77,12 @@ local function get_device_pstates(devicePath)
     return pstates
 end
 
-local function write_pstate(path, pstate)
+local function write_pstate(path, pstate, slient)
     local file, err = io.open(path, "w+")
 
     if file then
         local errmsg = file:write(pstate)
-        if errmsg == nil then
+        if not errmsg and not slient then
             print(string.format("Successfully applied pstate %s for %s", pstate, path))
         end
         file:close()
@@ -92,8 +92,8 @@ local function write_pstate(path, pstate)
 end
 
 local function change_device_pstate(level, device, savePath)
-    local err, availablePstates = pcall(get_device_pstates, device)
-    if err == true then
+    local success, availablePstates = pcall(get_device_pstates, device)
+    if success then
         local pstate = level
         if level == "max" then
             pstate = availablePstates[#availablePstates]
@@ -105,7 +105,7 @@ local function change_device_pstate(level, device, savePath)
 
         if savePath then
             local contents = "options nouveau config=NvClkMode=" .. tonumber(pstate, 16)
-            write_pstate(savePath, contents)
+            write_pstate(savePath, contents, true)
         end
 
         return true
@@ -136,9 +136,9 @@ end
 
 local function print_avaliable_pstates()
     find_devices(function (path)
-       local err, pstates  = pcall(get_device_pstates, path)
+       local exists, pstates  = pcall(get_device_pstates, path)
 
-       if err == true  then
+       if exists then
            for j = 1, #pstates do
                print(path, pstates[j])
            end

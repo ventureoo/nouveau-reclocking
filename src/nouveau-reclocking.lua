@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 --[[
-Copyright (C) 2023 Vasiliy Stelmachenok <ventureo@yandex.ru>
+Copyright (C) 2024 Vasiliy Stelmachenok <ventureo@yandex.ru>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ end
 local function is_running_as_root()
     local file, err = io.open("/sys/kernel/debug", "r")
     if err and err:match(".+: Permission denied") then
-            return false
+        return false
     else
         io.close(file)
         return true
@@ -64,17 +64,35 @@ end
 
 local function get_device_pstates(devicePath)
     local pstates = {}
-    local pstate_level_pattern = "(..):.+"
+    local clocks = {}
+    local count = 0
+    local pstate_level_pattern = "(..):(.+)"
 
-    for line in io.lines(devicePath) do
-        local pstate = line:match(pstate_level_pattern)
-        -- AC pstate is buggy, so just ignore it
-        if pstate and pstate ~= "AC" then
-           pstates[#pstates+1] = pstate
-        end
+    local device = io.open(devicePath, "r")
+
+    if not device then
+        return nil
     end
 
-    return pstates
+    local line = device:read()
+    while line do
+        local pstate, clock = line:match(pstate_level_pattern)
+        -- AC pstate is buggy, so just ignore it
+        if pstate and pstate ~= "AC" then
+            pstates[#pstates + 1] = pstate
+            clocks[#clocks+1] = clock
+            count = count + 1
+        end
+        line = device:read()
+    end
+    device:close()
+
+    if count == 0 then
+        print("No available pstate levels in " .. devicePath)
+        return nil
+    end
+
+    return pstates, clocks
 end
 
 local function write_pstate(path, pstate, slient)
@@ -92,41 +110,42 @@ local function write_pstate(path, pstate, slient)
 end
 
 local function change_device_pstate(level, device, savePath)
-    local success, availablePstates = pcall(get_device_pstates, device)
-    if success then
-        local pstate = level
-        if level == "max" then
-            pstate = availablePstates[#availablePstates]
-        elseif level == "min" then
-            pstate = availablePstates[1]
-        end
+    local pstates = get_device_pstates(device)
 
-        write_pstate(device, pstate)
-
-        if savePath then
-            local contents = "options nouveau config=NvClkMode=" .. tonumber(pstate, 16)
-            write_pstate(savePath, contents, true)
-        end
-
-        return true
-    else
+    if not pstates then
         return false
     end
+
+    local pstate = level
+    if level == "max" then
+        pstate = pstates[#pstates]
+    elseif level == "min" then
+        pstate = pstates[1]
+    end
+
+    write_pstate(device, pstate)
+
+    if savePath then
+        local contents = "options nouveau config=NvClkMode=" .. tonumber(pstate, 16)
+        write_pstate(savePath, contents, true)
+    end
+
+    return true
 end
 
 local function find_devices(callback)
     -- Ugly hacks
-    for i = 0, 16 do
-         local path = "/sys/kernel/debug/dri/" .. i .. "/pstate"
-         if file_exists(path) then
-             callback(path)
-         end
+    for id = 0, 16 do
+        local path = "/sys/kernel/debug/dri/" .. id .. "/pstate"
+        if file_exists(path) then
+            callback(path, id)
+        end
     end
 end
 
 local function change_for_all_devices(level)
     local success = false
-    find_devices(function (path)
+    find_devices(function(path)
         success = success or change_device_pstate(level, path)
     end)
     if not success then
@@ -135,24 +154,24 @@ local function change_for_all_devices(level)
 end
 
 local function print_avaliable_pstates()
-    find_devices(function (path)
-       local exists, pstates  = pcall(get_device_pstates, path)
+    find_devices(function(path, id)
+        local pstates, clocks = get_device_pstates(path)
 
-       if exists then
-           for j = 1, #pstates do
-               print(path, pstates[j])
-           end
-       end
-
+        if pstates and clocks then
+            print("GPU #" .. id)
+            for j = 1, #pstates do
+                print(string.format("%s: %s", pstates[j], clocks[j]))
+            end
+        end
     end)
     os.exit(0)
 end
 
 local function get_opts(args)
     local options = {}
-    local option_pattern="-%-?(.+)"
+    local option_pattern = "-%-?(.+)"
 
-    for i = 1,#args do
+    for i = 1, #args do
         local option = aliases[args[i]] or args[i]
         local match = option:match(option_pattern)
 
@@ -164,23 +183,23 @@ local function get_opts(args)
 end
 
 local function check_on_conflicts(options, ...)
-   local conflictsOpts = {...}
-   local lastFound
+    local conflictsOpts = { ... }
+    local lastFound
 
-   for i=1,#conflictsOpts do
-       local option = conflictsOpts[i]
-       if options[option] then
-           if lastFound ~= nil then
-               die("--%s and --%s cannot be specified at the same time", lastFound, option)
-           else
-               lastFound = option
-           end
-       end
-   end
+    for i = 1, #conflictsOpts do
+        local option = conflictsOpts[i]
+        if options[option] then
+            if lastFound ~= nil then
+                die("--%s and --%s cannot be specified at the same time", lastFound, option)
+            else
+                lastFound = option
+            end
+        end
+    end
 end
 
 local function print_usage()
-    print[[
+    print [[
 nouveau-reclocking - a small utility to relock your GPU with nouveau
 
 Options:
@@ -195,13 +214,13 @@ Options:
 
 WARNING: Reclocking is supported only on GM10x Maxwell, Kepler and Tesla G94-GT218 GPUs.
 ]]
-  os.exit(0)
+    os.exit(0)
 end
 
 local function get_opt_argument(options, option, default)
     local index = options[option]
     if index ~= nil then
-        local option_argument = arg[index+1]
+        local option_argument = arg[index + 1]
         if option_argument == nil or options[option_argument:gsub("-%-", "")] then
             if not default then
                 die("Missing argument for option %s", option)

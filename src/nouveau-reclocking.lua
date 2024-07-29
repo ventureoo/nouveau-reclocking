@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 -- https://forums.debian.net/viewtopic.php?t=146141
 -- https://github.com/polkaulfield/nouveau-reclocking-guide
 --]]
-local version = "1.0"
+local version = "1.1"
 
 local aliases = {
     ["-l"] = "--list",

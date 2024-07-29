@@ -111,12 +111,15 @@ recently received a patch for multi-threading
 https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/10752, which should
 also improve performance.
 
-Nouveau also does not support Vulkan at all. And this is of course a big
-disadvantage. However, if you are a Tesla or Fermi GPU owner, you will not have
-Vulkan support at the hardware level anyway, so this disadvantage of Nouveau
-probably will not affect you.  It is also worth noting that a new driver for
-Nouveau, which implements Vulkan support - NVK. It is still under development,
-but it gives hope that Nouveau will have Vulkan support in the near future.
+Nouveau supports Vulkan for the latest NVIDIA GPUs with a new Mesa driver, NVK.
+Note that the current stable versions of Mesa only allow NVK to work for GPUs
+starting with Turing, but for the latest build from Git it also works for all
+GPUs starting with Maxwell. NVK supports Vulkan 1.3 and some modern Vulkan
+extensions, but it doesn't yet reach the performance level of a closed driver,
+but it is only 20% slower! (benchmarks can be found here:
+https://video.hardlimit.com/w/oonv6VCnX3jn6keFC8fe9N). However, if you are a
+Tesla or Fermi GPU owner, you will not have Vulkan support at the hardware
+level anyway :(
 
 ## Resources
 

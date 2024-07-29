@@ -23,6 +23,16 @@ is probably useless for you.
 It requires no external dependencies and should work on any distribution. Read
 the installation block below.
 
+**IMPORTANT NOTE:** For Turing generation and above (16xx/20xx/30xx/40xx
+cards), Nouveau runs automatic power management with Nvidia's GSP firmware, so
+you don't need to use this script if you own those cards. If automatic power
+management doesn't work for you on these cards, make sure you have the kernel
+parameter ``nouveau.config=NvGspRm=1`` set (although most distributions have it
+enabled by default). Also note that owners of GPUs from Maxwell onwards can
+also use NVK drivers to run Vulkan together with this script for performance
+gains, but you need to install latest mesa-git with commit
+(https://gitlab.freedesktop.org/mesa/mesa/-/commit/ec7924ab9036cdc4637c9878e152e4460794cb5b).
+
 ## Installation
 
 You need Git and Lua. The script is compatible with any version of Lua, so it

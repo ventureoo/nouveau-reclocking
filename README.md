@@ -28,10 +28,11 @@ cards), Nouveau runs automatic power management with Nvidia's GSP firmware, so
 you don't need to use this script if you own those cards. If automatic power
 management doesn't work for you on these cards, make sure you have the kernel
 parameter ``nouveau.config=NvGspRm=1`` set (although most distributions have it
-enabled by default). Also note that owners of GPUs from Maxwell onwards can
-also use NVK drivers to run Vulkan together with this script for performance
-gains, but you need to install latest mesa-git with commit
-(https://gitlab.freedesktop.org/mesa/mesa/-/commit/ec7924ab9036cdc4637c9878e152e4460794cb5b).
+enabled by default).
+
+Also note that owners of Kepler or Maxwell GPUs can also use NVK drivers to
+run Vulkan together with this script for performance gains, but you need at
+least mesa version 25.2.
 
 ## Installation
 

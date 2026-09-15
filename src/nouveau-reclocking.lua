@@ -149,7 +149,7 @@ local function change_for_all_devices(level)
         success = success or change_device_pstate(level, path)
     end)
     if not success then
-        die("No devices were found that can be relocking :(")
+        die("No devices were found that can be reclocked :(")
     end
 end
 
@@ -200,7 +200,7 @@ end
 
 local function print_usage()
     print [[
-nouveau-reclocking - a small utility to relock your GPU with nouveau
+nouveau-reclocking - a small utility to reclock your GPU with nouveau
 
 Options:
   -c --card      Set for a specific card only (numeric ID)
